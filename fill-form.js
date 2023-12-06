@@ -44,7 +44,7 @@ window.fillForm = async () => {
         if (label.length) return label.text().trim();
         label = $(input).parent().parent().find('label');
         if (label.length) return label.text().trim();
-        return input.text().trim() || input.parent().text().trim();
+        return $(input).text().trim() || $(input).parent().text().trim();
     };
 
     window.getRadioOptions = (input) => {
@@ -78,12 +78,18 @@ window.fillForm = async () => {
         return cities;
     });
 
-    window.fillForm = (target) => {
+    window.getRadioValue = (input) => {
+        let options = window.getRadioOptions(input);
+        for (let option of options) {
+            if (option.el.checked) return option.value;
+        }
+        return null;
+    };
+
+    window.fillFormCbk = (target) => {
         let form = $(target).closest('form');
         if (!form.length) return alert('No form found');
 
-        /* fill inputs */
-        let inputs = form.find('input[type="text"], input[type="email"], input[type="tel"], input[type="number"], input[type="password"]');
         let firstnames = ['Carlo', 'Enrica', 'Giovanni', 'Giuseppe', 'Maria', 'Mario', 'Paolo', 'Pietro', 'Roberto', 'Sara', 'Silvia', 'Simone', 'Stefano'];
         let lastnames = ['Bianchi', 'Bruno', 'Colombo', 'Conti', 'Costa', 'De Luca', 'Ferrari', 'Fontana', 'Galluccio', 'Musk', 'Baugé', 'Dumont', 'Genbrugge', 'Lefebvre', 'Leroy', 'Petit', 'Robert', 'Simon', 'Thomas', 'Vasseur', 'Wagner', 'Weber', 'Werner', 'Zimmermann', 'Berg', 'Bakker', 'Jansen', 'Visser', 'Smit', 'Meijer', 'De Jong', 'De Vries', 'Van de Berg', 'Van den Berg', 'Van der Berg', 'Van Dijk', 'Bakker', 'Janssen', 'Visser', 'Smit', 'Meijer', 'De Boer', 'Mulder', 'De Groot', 'Bos', 'Vos', 'Peters', 'Hendriks', 'Van Leeuwen', 'Dekker', 'Brouwer', 'De Wit', 'Dijkstra', 'Smits', 'De Graaf', 'Van der Meer', 'Van der Linden', 'Kok', 'Jacobs', 'Vermeulen', 'Van Vliet', 'Van den Heuvel', 'Van der Veen', 'Van den Broek', 'De Bruin', 'Schouten', 'Van Beek', 'Van Dam', 'Van den Brink', 'Koster', 'Van der Wal', 'Maas', 'Verhoeven', 'Kuijpers', 'Van der Heijden', 'Scholten', 'Van Wijk', 'Post', 'Martens', 'Vink', 'Prins', 'Sanders', 'Van de Ven', 'Verschoor', 'Kuiper', 'Van der Heide', 'Van den Bosch', 'Van der Meulen', 'Kramer', 'Van der Laan', 'Van der Velde', 'Van Doorn', 'Van de Pol', 'Schmidt', 'Timmermans', 'Jonker', 'Van den Berg', 'Van der Linden', 'Kramer', 'Van der Laan', 'Van der Velde', 'Van Doorn', 'Van de Pol', 'Schmidt', 'Timmermans', 'Jonker', 'Van den Broek', 'Van der Heide', 'Van den Bosch', 'Van der Meulen', 'Van der Velden', 'Kuijpers', 'Van der Horst', 'Van der Heijden', 'Scholten', 'Van Wijk', 'Post', 'Martens', 'Vink', 'Prins', 'Sanders', 'Van de Ven', 'Verschoor', 'Kuiper', 'Van der Heide', 'Van den Bosch'];
         let email_domains = ['@gmail.com', '@hotmail.com', '@yahoo.com', '@outlook.com', '@protonmail.com', '@tutanota.com', '@aol.com', '@mail.com', '@gmx.com', '@zoho.com', '@yandex.com', '@icloud.com', '@live.com', '@inbox.com'];
@@ -105,16 +111,23 @@ window.fillForm = async () => {
             return code_postal;
         };
 
+        /* fill inputs */
+        let inputs = form.find('input');
         inputs.each((i, el) => {
             /* skip inputs with a value */
-            if ($(el).val()) return;
+            if ($(el).val() && !['radio', 'checkbox'].includes($(el).attr('type'))) return console.log('skipping', $(el).attr('type'), el);
+            if ($(el).attr('type') == 'hidden') return console.log('skipping hidden', el);
+            if ($(el).attr('type') == 'submit') return console.log('skipping submit', el);
+            if ($(el).attr('type') == 'button') return console.log('skipping button', el);
+            if ($(el).attr('type') == 'reset') return console.log('skipping reset', el);
+            if (['radio', 'checkbox'].includes($(el).attr('type')) && window.getRadioValue(el)) return console.log('skipping radio/checkbox', el);
             /* get the input type */
             let type = $(el).attr('type');
             if (type == 'text') {
                 /* get label */
                 let label = window.getLabel(el);
                 if (!label) return console.warn('No label found for', el);
-                let text = label.text().trim();
+                let text = label.trim();
                 if (/^(pr[eé]nom|first)/gi.test(text)) {
                     last_firstname = window.pickRandom(firstnames);
                     el.value = last_firstname;
@@ -129,7 +142,7 @@ window.fillForm = async () => {
                     el.value = 'test '+Math.random().toString(36).substring(7);
                 }
             } else if (type == 'email') {
-                let s = window.pickRandom(names) + '.' + window.pickRandom(adjectives);
+                let s = window.pickRandom(names).replace(/\s+/g, '') + '.' + window.pickRandom(adjectives).replace(/\s+/g, '.');
                 if (last_firstname) {
                     s = last_firstname;
                     if (last_lastname) s += '.' + last_lastname;
@@ -149,9 +162,12 @@ window.fillForm = async () => {
                 let max_date = el.max;  
                 if (!min_date) min_date = '1970-01-01';
                 if (!max_date) max_date = '2030-01-01';
+                min_date = new Date(min_date);
+                max_date = new Date(max_date);
                 let date = new Date(min_date.getTime() + Math.random() * (max_date.getTime() - min_date.getTime()));
+                console.log('date', date.toISOString().split('T')[0], 'min', min_date, 'max', max_date);
                 el.value = date.toISOString().split('T')[0];
-            } else if (type == 'phone') {
+            } else if (type == 'phone' || type == 'tel') {
                 el.value = '06'+Math.floor(Math.random() * 89999999 + 10000000);
             } else {
                 console.warn('input type not yet supported', type, el);
@@ -182,10 +198,12 @@ window.fillForm = async () => {
 
     };
 
-    document.addEventListener('click', (e) => {
+    document.removeEventListener('click', window.formClick);
+    window.formClick = (e) => {
         if (!/^(input|select|label)$/gi.test(e.target.tagName)) return;
-        window.fillForm(e.target);
-    });
+        window.fillFormCbk(e.target);
+    };
+    document.addEventListener('click', window.formClick);
     new Noty({text: 'Click on a form field to fill the form', type: 'info', timeout: 3000}).show();
 
 };
