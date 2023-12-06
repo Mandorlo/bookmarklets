@@ -37,13 +37,13 @@ window.fillForm = async () => {
 
     window.getLabel = (input) => {
         let label = $(input).closest('label');
-        if (label.length) return label.test().trim();
+        if (label.length) return label.text().trim();
         let id = $(input).attr('id');
         if (id) return $(`label[for="${id}"]`);
         label = $(input).parent().find('label');
-        if (label.length) return label.test().trim();
+        if (label.length) return label.text().trim();
         label = $(input).parent().parent().find('label');
-        if (label.length) return label.test().trim();
+        if (label.length) return label.text().trim();
         return input.text().trim() || input.parent().text().trim();
     };
 
