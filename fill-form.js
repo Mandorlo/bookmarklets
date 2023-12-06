@@ -1,4 +1,4 @@
-(async function() {
+window.fillForm = async () => {
 
     window.loadStyle = async (url) => {
         if (Array.isArray(url)) return Promise.all(url.map(window.loadStyle));
@@ -188,4 +188,5 @@
     });
     new Noty({text: 'Click on a form field to fill the form', type: 'info', timeout: 3000}).show();
 
-})()
+};
+window.fillForm();
