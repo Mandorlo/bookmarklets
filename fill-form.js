@@ -91,6 +91,7 @@ window.fillForm = async () => {
         if (!form.length) return alert('No form found');
 
         let firstnames = ['Carlo', 'Enrica', 'Giovanni', 'Giuseppe', 'Maria', 'Mario', 'Paolo', 'Pietro', 'Roberto', 'Sara', 'Silvia', 'Simone', 'Stefano'];
+        let firstname_genres = {Carlo: 'm', Enrica: 'f', Giovanni: 'm', Giuseppe: 'm', Maria: 'f', Mario: 'm', Paolo: 'm', Pietro: 'm', Roberto: 'm', Sara: 'f', Silvia: 'f', Simone: 'm', Stefano: 'm'}
         let lastnames = ['Bianchi', 'Bruno', 'Colombo', 'Conti', 'Costa', 'De Luca', 'Ferrari', 'Fontana', 'Galluccio', 'Musk', 'Baugé', 'Dumont', 'Genbrugge', 'Lefebvre', 'Leroy', 'Petit', 'Robert', 'Simon', 'Thomas', 'Vasseur', 'Wagner', 'Weber', 'Werner', 'Zimmermann', 'Berg', 'Bakker', 'Jansen', 'Visser', 'Smit', 'Meijer', 'De Jong', 'De Vries', 'Van de Berg', 'Van den Berg', 'Van der Berg', 'Van Dijk', 'Bakker', 'Janssen', 'Visser', 'Smit', 'Meijer', 'De Boer', 'Mulder', 'De Groot', 'Bos', 'Vos', 'Peters', 'Hendriks', 'Van Leeuwen', 'Dekker', 'Brouwer', 'De Wit', 'Dijkstra', 'Smits', 'De Graaf', 'Van der Meer', 'Van der Linden', 'Kok', 'Jacobs', 'Vermeulen', 'Van Vliet', 'Van den Heuvel', 'Van der Veen', 'Van den Broek', 'De Bruin', 'Schouten', 'Van Beek', 'Van Dam', 'Van den Brink', 'Koster', 'Van der Wal', 'Maas', 'Verhoeven', 'Kuijpers', 'Van der Heijden', 'Scholten', 'Van Wijk', 'Post', 'Martens', 'Vink', 'Prins', 'Sanders', 'Van de Ven', 'Verschoor', 'Kuiper', 'Van der Heide', 'Van den Bosch', 'Van der Meulen', 'Kramer', 'Van der Laan', 'Van der Velde', 'Van Doorn', 'Van de Pol', 'Schmidt', 'Timmermans', 'Jonker', 'Van den Berg', 'Van der Linden', 'Kramer', 'Van der Laan', 'Van der Velde', 'Van Doorn', 'Van de Pol', 'Schmidt', 'Timmermans', 'Jonker', 'Van den Broek', 'Van der Heide', 'Van den Bosch', 'Van der Meulen', 'Van der Velden', 'Kuijpers', 'Van der Horst', 'Van der Heijden', 'Scholten', 'Van Wijk', 'Post', 'Martens', 'Vink', 'Prins', 'Sanders', 'Van de Ven', 'Verschoor', 'Kuiper', 'Van der Heide', 'Van den Bosch'];
         let email_domains = ['@gmail.com', '@hotmail.com', '@yahoo.com', '@outlook.com', '@protonmail.com', '@tutanota.com', '@aol.com', '@mail.com', '@gmx.com', '@zoho.com', '@yandex.com', '@icloud.com', '@live.com', '@inbox.com'];
         let names = ['dolphin', 'eagle', 'elephant', 'fox', 'giraffe', 'gorilla', 'horse', 'lion', 'monkey', 'panda', 'parrot', 'penguin', 'pig', 'rabbit', 'snake', 'tiger', 'turtle', 'wolf', 'zebra'];
@@ -142,10 +143,10 @@ window.fillForm = async () => {
                     el.value = 'test '+Math.random().toString(36).substring(7);
                 }
             } else if (type == 'email') {
-                let s = window.pickRandom(names).replace(/\s+/g, '') + '.' + window.pickRandom(adjectives).replace(/\s+/g, '.');
+                let s = window.pickRandom(names).replace(/\s+/g, '') + '.' + window.pickRandom(adjectives).replace(/\s+/g, '');
                 if (last_firstname) {
-                    s = last_firstname;
-                    if (last_lastname) s += '.' + last_lastname;
+                    s = last_firstname.replace(/\s+/g, '');
+                    if (last_lastname) s += '.' + last_lastname.replace(/\s+/g, '');
                 } else if (last_lastname) {
                     s = last_lastname;
                 }
@@ -153,10 +154,18 @@ window.fillForm = async () => {
             } else if (type == 'radio') {
                 /* get all the options */
                 let options = window.getRadioOptions(el);
-                /* pick a random option */
-                let option = window.pickRandom(options);
-                /* check the option */
-                $(option.el).click();
+                if (last_firstname && options.length == 2 && options.every(o => ['m', 'f'].includes(o.value.toLowerCase()))) {
+                    let genre = firstname_genres[last_firstname];
+                    for (let option of options) {
+                        if (option.value.toLowerCase() != genre) continue;
+                        return $(option.el).prop('checked', true);
+                    }
+                } else {
+                    /* pick a random option */
+                    let option = window.pickRandom(options);
+                    /* check the option */
+                    $(option.el).click();
+                }
             } else if (type == 'date') {
                 let min_date = el.min;
                 let max_date = el.max;  
