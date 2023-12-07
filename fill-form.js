@@ -202,6 +202,7 @@ window.fillForm = async () => {
     window.formClick = (e) => {
         if (!/^(input|select|label)$/gi.test(e.target.tagName)) return;
         window.fillFormCbk(e.target);
+        document.removeEventListener('click', window.formClick);
     };
     document.addEventListener('click', window.formClick);
     new Noty({text: 'Click on a form field to fill the form', type: 'info', timeout: 3000}).show();
